@@ -23,7 +23,7 @@ namespace FinShark.Controllers
             var commentDto = comments.Select(s => s.ToCommentDto());
             return Ok(commentDto);
         }
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             if(!_unitOfWork.Comment.ObjectExistAsync(u => u .Id == id).GetAwaiter().GetResult())
@@ -76,12 +76,16 @@ namespace FinShark.Controllers
            await _unitOfWork.SaveAsync();
             return Ok(commentFromDb.ToCommentDto());
         }
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             if(!_unitOfWork.Comment.ObjectExistAsync(u => u.Id == id).GetAwaiter().GetResult())
             {
                 return NotFound();
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
             }
             var commentToDelete = await _unitOfWork.Comment.GetAsync(u => u.Id == id);
             _unitOfWork.Comment.Delete(commentToDelete);

@@ -67,12 +67,16 @@ namespace FinShark.Controllers
            await _unitOfWork.SaveAsync();
             return Ok(stockFromDb.ToStockDto());
         }
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             if(!_unitOfWork.Stock.ObjectExistAsync(u => u.Id == id).GetAwaiter().GetResult())
             {
                 return NotFound();
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
             }
             var stockToDelete = await _unitOfWork.Stock.GetAsync(u => u.Id == id);
             _unitOfWork.Stock.Delete(stockToDelete);
