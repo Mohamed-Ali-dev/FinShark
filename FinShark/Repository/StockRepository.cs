@@ -16,9 +16,8 @@ namespace FinShark.Repository
         {
             _db = db;
         }
-        public async Task<IEnumerable<Stock>> GetAllAsync(Expression<Func<Stock, bool>>? filter = null,
-            Expression<Func<Stock, object>>? orderBy = null, bool? isDescending = false,
-            string[]? includeProperties = null, string? companyName = null, string? symbol = null)
+        public async Task<IEnumerable<Stock>> GetAllAsync(QueryObject queryObject, Expression<Func<Stock, bool>>? filter = null,
+            Expression<Func<Stock, object>>? orderBy = null, string[]? includeProperties = null )
         
         {
             IQueryable<Stock> query = dbset;
@@ -26,18 +25,18 @@ namespace FinShark.Repository
             {
                 query = query.Where(filter);
             }
-            if (!string.IsNullOrEmpty(companyName))
+            if (!string.IsNullOrEmpty(queryObject.CompanyName))
             {
-               query = _db.Stocks.Where(s => s.CompanyName.Contains(companyName));
+               query = _db.Stocks.Where(s => s.CompanyName.Contains(queryObject.CompanyName));
             }
-            else if (!string.IsNullOrEmpty(symbol))
+            else if (!string.IsNullOrEmpty(queryObject.Symbol))
             {
-                query = _db.Stocks.Where(s => s.Symbol.Contains(symbol));
+                query = _db.Stocks.Where(s => s.Symbol.Contains(queryObject.Symbol));
 
             }
             if (orderBy!= null)
             {
-                query = isDescending == true ? query.OrderByDescending(orderBy)
+                query = queryObject.isDescending == true ? query.OrderByDescending(orderBy)
                     : query.OrderBy(orderBy);
             }
             if (includeProperties != null)
@@ -47,7 +46,9 @@ namespace FinShark.Repository
                     query = query.Include(includeprop);
                 }
             }
-            return await query.ToListAsync();
+            var skipNumber = (queryObject.pageNumber - 1) * queryObject.pageSize;
+            
+            return await query.Skip(skipNumber).Take(queryObject.pageSize).ToListAsync();
 
         }
         public async Task<Stock> Update(int id, CreateStockDto dto)

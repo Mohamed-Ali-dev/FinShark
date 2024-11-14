@@ -22,26 +22,30 @@ namespace FinShark.Controllers
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
         {
             IEnumerable<Stock> stocks;
-            if(query.orderBy.Equals("symbol", StringComparison.OrdinalIgnoreCase))
+            if(query.orderBy != null)
             {
-                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }, companyName: query.CompanyName, symbol: query.Symbol
-                , orderBy: u => u.Symbol, isDescending: query.isDescending);
+
             }
-            else if(query.orderBy.Equals("companyName", StringComparison.OrdinalIgnoreCase))
+            if(string.Equals(query.orderBy, "symbol", StringComparison.OrdinalIgnoreCase))
             {
-                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }, companyName: query.CompanyName, symbol: query.Symbol
-                 , orderBy: u => u.CompanyName, isDescending: query.isDescending);
+                stocks = await _unitOfWork.Stock.GetAllAsync( query, includeProperties: new[] { "Comments" }
+                , orderBy: u => u.Symbol);
+            }
+            else if(string.Equals(query.orderBy, "companyName", StringComparison.OrdinalIgnoreCase))
+            {
+                stocks = await _unitOfWork.Stock.GetAllAsync(query,includeProperties: new[] { "Comments" }
+                 , orderBy: u => u.CompanyName);
             }
             else
             {
-                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }
-              , companyName: query.CompanyName, symbol: query.Symbol);
+                stocks = await _unitOfWork.Stock.GetAllAsync(query, includeProperties: new[] { "Comments" } );
             }
 
             if (!stocks.Any())
             {
                 return NotFound("No stocks found matching the specified criteria.");
             }
+
             var stokDto = stocks.Select(s => s.ToStockDto());
             return Ok(stocks);
         }
