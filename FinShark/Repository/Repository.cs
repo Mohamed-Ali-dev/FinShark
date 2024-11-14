@@ -14,12 +14,17 @@ namespace FinShark.Repository
             _db = db;
             this.dbset = _db.Set<T>();
         }
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string[]? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>>? filter = null,
+            Expression<Func<T,object>>? orderBy = null, bool? isDescending = false,  string[]? includeProperties = null)
         {
             IQueryable<T> query = dbset;
             if (filter != null)
             {
                 query =  query.Where(filter);
+            }
+            if (orderBy != null)
+            {
+                query = isDescending == true ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
             }
             if (includeProperties != null)
             {

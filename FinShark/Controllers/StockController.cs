@@ -1,5 +1,7 @@
 ﻿using FinShark.Dtos;
+using FinShark.Helpers;
 using FinShark.Mappers;
+using FinShark.Models;
 using FinShark.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +19,29 @@ namespace FinShark.Controllers
             _unitOfWork = unitOfWork;
         }
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
         {
-            var stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] {"Comments"});
+            IEnumerable<Stock> stocks;
+            if(query.orderBy.Equals("symbol", StringComparison.OrdinalIgnoreCase))
+            {
+                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }, companyName: query.CompanyName, symbol: query.Symbol
+                , orderBy: u => u.Symbol, isDescending: query.isDescending);
+            }
+            else if(query.orderBy.Equals("companyName", StringComparison.OrdinalIgnoreCase))
+            {
+                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }, companyName: query.CompanyName, symbol: query.Symbol
+                 , orderBy: u => u.CompanyName, isDescending: query.isDescending);
+            }
+            else
+            {
+                stocks = await _unitOfWork.Stock.GetAllAsync(includeProperties: new[] { "Comments" }
+              , companyName: query.CompanyName, symbol: query.Symbol);
+            }
+
+            if (!stocks.Any())
+            {
+                return NotFound("No stocks found matching the specified criteria.");
+            }
             var stokDto = stocks.Select(s => s.ToStockDto());
             return Ok(stocks);
         }
