@@ -1,4 +1,6 @@
-﻿using FinShark.Models;
+﻿using FinShark.Helpers;
+using FinShark.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +21,25 @@ namespace FinShark.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            List<IdentityRole> roles = new List<IdentityRole>
+            {
+                new IdentityRole{
+                Id = Guid.NewGuid().ToString(),
+                Name = SD.Role_Admin,
+                NormalizedName = "ADMIN",
+                ConcurrencyStamp =Guid.NewGuid().ToString()
+
+                },
+                new IdentityRole{
+                Id = Guid.NewGuid().ToString(),
+                Name = SD.Role_User,
+                NormalizedName = "USER",
+                ConcurrencyStamp =Guid.NewGuid().ToString()
+
+                }
+            };
+           modelBuilder.Entity<IdentityRole>().HasData(roles);
 
             modelBuilder.Entity<Stock>().HasData(
                 new Stock { Id = 1, Symbol = "TSLA", CompanyName = "Tesla", Purchase = 100, lastDiv = 2m, Industry = "Automotive", MarketCap = 234234234 },
